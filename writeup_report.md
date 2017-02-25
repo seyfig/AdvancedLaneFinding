@@ -14,7 +14,7 @@ The goals/steps of this project are the following:
 [//]: # (Image References)
 
 [image1]: ./output_images/undistort_output.png "Undistorted Chessboard"
-[image2]: ./test_images/test5.jpg "Road Original"
+[image2]: ./output_images/test5.jpg "Road Original"
 [image2b]: ./output_images/undistorted.jpg "Road Undistorted"
 [image3]: ./output_images/thresholded.jpg "Binary Thresholded"
 [image4]: ./output_images/warped_straight_lines.jpg "Warp Example"
