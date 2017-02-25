@@ -14,7 +14,7 @@ The goals/steps of this project are the following:
 [//]: # (Image References)
 
 [image1]: ./output_images/undistort_output.png "Undistorted Chessboard"
-[image2]: ./output_images/test5.jpg "Road Original"
+[image2]: ./test_images/test5.jpg "Road Original"
 [image2b]: ./output_images/undistorted.jpg "Road Undistorted"
 [image3]: ./output_images/thresholded.jpg "Binary Thresholded"
 [image4]: ./output_images/warped_straight_lines.jpg "Warp Example"
@@ -48,6 +48,18 @@ First the image is undistorted using the cv2.undistort() function and the mtx an
 
 ####2. Gradients and color thresholds are used to obtain a binary image.
 
+The final transformations contain X gradient, V threshold, 1 yellow threshold using HSV color space, and 3 white thresholds using HLS, HSV, and RGB color spaces. X gradient and V threshold are combined with and, this combination and all other thresholds combined with or. The list of the thresholds is given in the following table.
+
+| Name    | Chn/Gra  | Space  | Thresholds                       |
+|:-------:|:--------:|:------:|:--------------------------------:|
+| X       | X        | RGB    | 12, 255                          |
+| V       | V        | HSV    | 180, 255                         |
+| Yellow  | HSV      | HSV    | (16, 70, 100), (36, 255, 255)    |
+| White1  | HSV      | HSV    | (0, 0, 207), (255, 20, 255)      |
+| White2  | HLS      | HLS    | (0, 202, 0), (255, 255, 53)      |
+| White3  | RGB      | RGB    | (200, 200, 200), (255, 255, 255) |
+
+
 The beginning transformations performed with X and Y gradient and S threshold of HLS color space, and V threshold of HSV space. The thresholds are as follows:
 
 | Channel/Grad  | Space  | Thresholds    |
@@ -57,7 +69,7 @@ The beginning transformations performed with X and Y gradient and S threshold of
 | S             | HLS    | 100, 255      |
 | V             | HSV    | 50, 255       |
 
-X and Y gradients are combined with and, S and V combinations combined with and. These sub combinations are combined with or.
+X and Y gradients are combined with and, S and V combinations combined with and. These sub-combinations are combined with or.
 
 These transformations can only work well on the project video. The color changes on the road are mixed with the lane lines when the images of challenge video transformed with this transformation.
 
@@ -92,7 +104,7 @@ Then, these two filters combined with an or. And this combination combined with 
 
 ####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes a function called `perspective()`, which appears in the 16th code cell of the IPython notebook. The `perspective()` function takes as inputs an image (`img`). The source (`src`) and destination (`dst`) points are defined in the function as the percentage of the image height and width. These parameters are given in the following table. The first values are the X values and they are the percentage value of the image width. The second values are the Y values and they are the percentage value of the image height.
+The code for my perspective transform includes a function called `perspective()`, which appears in the 15th code cell of the IPython notebook. The `perspective()` function takes as inputs an image (`img`). The source (`src`) and destination (`dst`) points are defined in the function as the percentage of the image height and width. These parameters are given in the following table. The first values are the X values and they are the percentage value of the image width. The second values are the Y values and they are the percentage value of the image height.
 
 | Point         | Source        | Destination   |
 |:-------------:|:-------------:|:-------------:|
@@ -128,17 +140,17 @@ These values are selected in order to find lane lines in the challenge video. Th
 ![alt text][image5a]
 ![alt text][image5]
 
-The tracker class defined in the code cell 19. It is used to track the information about the previous images. This class has a method find_window_centroids which takes a warped binary image and returns the center points for left and right lane lines. This function starts with looking at the half bottom of the image, and finds the most frequent x value for both the left half of the image and right half of the image. These x values are the starting points from the bottom for the left and the right lanes. Then, the image will be split into windows, and for each window the new most frequent x values will be searched. If an x value is found for the window, then the x value and corresponding y value are added to the list of the lane. The function will return these lists that are called left_centroids and right centroids.
+The tracker class defined in the code cell 18. It is used to track the information about the previous images. This class has a method find_window_centroids which takes a warped binary image and returns the center points for left and right lane lines. This function starts with looking at the half bottom of the image and finds the most frequent x value for both the left half of the image and right half of the image. These x values are the starting points from the bottom for the left and the right lanes. Then, the image will be split into windows, and for each window, the new most frequent x values will be searched. If an x value is found for the window, then the x value and corresponding y value are added to the list of the lane. The function will return these lists that are called left_centroids and right centroids.
 
-The process_image function in the 21st code cell, performs undistortion, color transformation, and perspective transformation by calling the related functions. After building the warped binary image, if there was no fit in the previous image, this function calls the find_window_centroid function of the tracker instance. Using these centroids polynomials are constructed. The indices of the points that are near to these polynomials are selected, left_lane_inds and right_lane_inds. These points shall be near to the left_fit polynomial or right_fit polynomial by a length of margin. If there was a fit in the previous image, left_fit and right_fit polynomials are obtained from the last image. Therefore the find_window_centroid function is not called.
+The process_image function in the 20th code cell, performs undistortion, perspective transformation, and color transformation by calling the related functions. After building the warped binary image, if there was no fit in the previous image, this function calls the find_window_centroid function of the tracker instance. Using these centroids polynomials are constructed. The indices of the points that are near to these polynomials are selected, left_lane_inds and right_lane_inds. These points shall be near to the left_fit polynomial or right_fit polynomial by a length of margin which was set to 100. If there was a fit in the previous image, left_fit and right_fit polynomials are obtained from the last image. Therefore the find_window_centroid function is not called.
 
-After new polynomials are fit to the lane lines, sanity check performed. The distance between the left and the right lanes at the bottom (y=720 in the warped image) and at the top (y=0 in the warped image) are saved in a list. When a new polynomial is calculated, the distance values will be compared to the mean of the previous values. Up to 15 previous values are used in the comparison. If the error for the bottom distance is greater than or equal to 50 or the error for the top distance is greater than or equal to 70, the calculated curves will not be used. The previously saved curves will be used instead. If there are more than 10 frames that the calculated curves don't pass the sanity check, the new curves used instead of the previously saved curves.
+After new polynomials are fit to the lane lines, sanity check is performed. The polygon between left lane and the right lane for the current image is compared with the one from the previous frame with cv2.matchShapes function. If the result is greater than or equal to 0.1, the new lane lines are considered to be incorrect and the calculated curves will not be used. The previously saved curves will be used instead. If there are more than 10 frames that the calculated curves don't pass the sanity check, the new curves used instead of the previously saved curves.
 
 After the curves selected, lane lines are plotted in an empty image, inverse perspective transform applied and the result is combined with the original image.
 
 ####5. Calculating the radius of curvatures
 
-Lane line curves that are in pixel units are converted to the lane line curves that are in meter units. Using the real world space curves and the radius formula given below, the radius of curvatures are calculated. curverad_l value is the radius of the left lane curvature and curverad_r value is the radius of the right lane curvature.
+Lane line curves that are in pixel units are converted to the lane line curves that are in meter units. Using the real world space curves and the radius formula given below, the radius of curvatures are calculated. curverad_l value is the radius of the left lane curvature and curverad_r value is the radius of the right lane curvature. Where y is taken as 359.5 which is close to the half value of the height of the image.
 
 R = ((1+(2Ay + B) ^ 2) ^ (3/2)) / |2A|
 
@@ -154,15 +166,17 @@ I did this in lines # through # in my code in `my_other_file.py`
 
 ####1. Project Video
 
-[![First Track Clockwise](http://img.youtube.com/vi/z-dF_K5amP0/0.jpg)](http://www.youtube.com/watch?v=z-dF_K5amP0)
+[![First Track Clockwise](http://img.youtube.com/vi/GHCu6xObnB0/0.jpg)](http://www.youtube.com/watch?v=GHCu6xObnB0)
 
 ####2. Challange Video
-[![First Track Counter-Clockwise](http://img.youtube.com/vi/Yivfu9rVxuc/0.jpg)](http://www.youtube.com/watch?v=Yivfu9rVxuc)
+[![First Track Counter-Clockwise](http://img.youtube.com/vi/P3pIyD32nOg/0.jpg)](http://www.youtube.com/watch?v=P3pIyD32nOg)
 
 ###Discussion
 
-I applied filtering, Sobel gradient, color channel thresholding, however with the threshold parameters I applied, the challenge video can not be processed successfully. Especially, in the beginning of the video, there are other lines that are get mixed with the lane lines. There are better techniques with different filters, however, I don't have enough experience with them. As a result, I tried to filter the yellow and white colors by the techniques that were shown in the first project. Then the processing time was considerably increased. In addition, in the challenge video when passing under the overpass, the colors have very low color values. Therefore, they can not be detected as yellow or white with the selected thresholds. Since the pipeline was using the previous curvature when it can not successfully detect a new one, the video could be processed. However, if there was a longer period of low light, the pipeline probably would not be able to process the video.
+####1. Briefly discuss any problems/issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-The choice of the source and destination trapezoids was another issue. I still don't have any idea if it is possible to use the same source and destination values for all of the videos, or it is required to use different source and destination parameters. The best source trapezoid for the project video did not perform well on the challenge video.
+I applied the yellow and white filters with the combination of X Sobel gradient and V threshold. This combination works when light is enough, and there are no other white or blue lines exist like in the harder challenge video. In addition, in the challenge video when passing under the overpass, the colors have very low color values. Therefore, they can not be detected as yellow or white with the selected thresholds. Since the pipeline was using the previous curvature when it can not successfully detect a new one, the video could be processed. However, if there was a longer period of low light, the pipeline probably would not be able to process the video.
 
-This pipeline failed in the harder challenge video. It will likely to fail in low light, and roads other than highways, especially where sharp turns exist. It is required to add more advanced techniques to distinguish lane lines from other lines, and to detect lane lines in low light.
+Another issue was whether is it possible to come up with a single set of source and destination trapezoids to successfully detect lanes in all of the three videos.
+
+This pipeline failed in the harder challenge video. It will likely to fail in long period of low light, and if there are other yellow or white lines other than lanes. In order to make it more robust, it is required to distinguish lines outside of the road. A filter may be used to select only the lines on the road. There may be two or more filters to be used in order. If the first one fails to detect any lines, then another one may search lines with thresholds values of a wider range. If there are too many lines, another filter with narrower thresholds may be used. According to the camera position, the starting point of lane lines may be assumed to be in a range, and the other part of the bottom of the image may be masked out. This option shall be turned off when switching lanes.
